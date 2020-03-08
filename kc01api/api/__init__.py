@@ -10,7 +10,8 @@ dter_model = tf.keras.models.load_model('ptit_19Feb', custom_objects={"recall20"
 dter_model.compile(optimizer='adam',
               loss='sparse_categorical_crossentropy',
               metrics=[recall20])
-
+test_input = tf.keras.preprocessing.sequence.pad_sequences([[1, 1]], maxlen=20, dtype='int64', padding='pre', truncating='pre', value=0)
+dter_model.predict(test_input)
 print("Restored successfully DTER Model!")
 
 map_url_trainid = pickle.load(open('map_url_trainid.pkl', 'rb'))
