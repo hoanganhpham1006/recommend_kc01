@@ -16,3 +16,12 @@ print("Restored successfully DTER Model!")
 
 map_url_trainid = pickle.load(open('map_url_trainid.pkl', 'rb'))
 remap_info = pickle.load(open('remap_info_most.pkl', 'rb'))
+
+#Statistic process
+most_popular_results = [l.split(' | ') for l in open('mostpopular.txt', 'r').readlines()]
+hot_trend_results = [l.split(' | ') for l in open('hottrend.txt', 'r').readlines()]
+stat_rec = []
+
+for i in range(10):
+    stat_rec.append(most_popular_results[0], most_popular_results[1][:-1], "Most-Popular")
+    stat_rec.append(hot_trend_results[0], hot_trend_results[1][:-1], "Hot-Trend")

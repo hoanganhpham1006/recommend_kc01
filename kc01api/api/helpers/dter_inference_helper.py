@@ -1,4 +1,4 @@
-from api import dter_model, remap_info, map_url_trainid, tf
+from api import dter_model, remap_info, map_url_trainid, tf, stat_rec
 import numpy as np
 
 def processing(list_url):
@@ -9,4 +9,4 @@ def processing(list_url):
     results = softmax[0].argsort()[-22:][::-1]
     print(results)
     list_rec = [remap_info[nid] for nid in list(results) if (nid != 0 and nid != list_url[0][-1])]
-    return list_rec[:20]
+    return {"sb": list_rec[:20], "stat": stat_rec}
