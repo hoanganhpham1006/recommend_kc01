@@ -1,0 +1,16 @@
+{
+    "manifest_version": 2,
+    "name": "Session based Recommendation",
+    "version": "0.1",
+    "content_scripts": [
+        {
+          "matches": [
+            "https://www.most.gov.vn/*"
+          ],
+          "js": ["jquery-3.4.1.min.js", "content.js"]
+        }
+    ],
+    "browser_action": {
+        "default_icon": "icon.png"
+    }
+}
