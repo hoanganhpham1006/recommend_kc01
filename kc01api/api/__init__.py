@@ -18,8 +18,8 @@ map_url_trainid = pickle.load(open('map_url_trainid.pkl', 'rb'))
 remap_info = pickle.load(open('remap_info_most.pkl', 'rb'))
 
 #Statistic process
-most_popular_results = [l.split(' | ') for l in open('mostpopular.txt', 'r').readlines()]
-hot_trend_results = [l.split(' | ') for l in open('hottrend.txt', 'r').readlines()]
+most_popular_results = [l.split(' | ') for l in open('mostpopular.txt', 'rt', encoding='utf-8').readlines()]
+hot_trend_results = [l.split(' | ') for l in open('hottrend.txt', 'rt', encoding='utf-8').readlines()]
 stat_rec = []
 
 for i in range(10):
