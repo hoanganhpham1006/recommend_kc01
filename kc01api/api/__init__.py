@@ -23,5 +23,5 @@ hot_trend_results = [l.split(' | ') for l in open('hottrend.txt', 'rt', encoding
 stat_rec = []
 
 for i in range(10):
-    stat_rec.append(most_popular_results[0], most_popular_results[1][:-1], "Most-Popular")
-    stat_rec.append(hot_trend_results[0], hot_trend_results[1][:-1], "Hot-Trend")
+    stat_rec.append([most_popular_results[0], most_popular_results[1][:-1], "Most-Popular"])
+    stat_rec.append([hot_trend_results[0], hot_trend_results[1][:-1], "Hot-Trend"])
