@@ -231,15 +231,15 @@ def recall20(y_true, y_pred, k=20, **kwargs):
     return tf.keras.metrics.sparse_top_k_categorical_accuracy(y_true, y_pred, k=k)
 
 def thread_function(start_date, end_date):
-    # crawl_success = crawl(start_date, end_date)
-    # if not crawl_success:
-    #     logd(settings.BASE_DIR + "/api/logs/train_log.txt", "a", -1, "Crawl Error")
-    #     return False
-    preprocess_sucess = preprocess(start_date, end_date)
+    crawl_success = crawl(start_date, end_date)
+    if not crawl_success:
+        logd(settings.BASE_DIR + "/api/logs/train_log.txt", "a", -1, "Crawl Error")
+        return False
+    preprocess_sucess, number_items = preprocess(start_date, end_date)
     if not preprocess_sucess:
         logd(settings.BASE_DIR + "/api/logs/train_log.txt", "a", -1, "Preprocess Error")
         return False
-    train_success = train_dter(start_date, end_date)
+    train_success = train_dter(start_date, end_date, number_items)
     if not train_success:
         logd(settings.BASE_DIR + "/api/logs/train_log.txt", "a", -1, "Training Error")
         return False
@@ -441,15 +441,6 @@ def processing(start_date, end_date):
         elif status == '-1':
             return "Training server are not working right, please check with admin for more information"
     logd(settings.BASE_DIR + "/api/logs/train_log.txt", "w", 0, "")
-    # x = threading.Thread(target=thread_function, args=(start_date, end_date))
-    # x.start()
-    preprocess_sucess, number_items = preprocess(start_date, end_date)
-    if not preprocess_sucess:
-        logd(settings.BASE_DIR + "/api/logs/train_log.txt", "a", -1, "Preprocess Error")
-        return False
-    train_success = train_dter(start_date, end_date, number_items)
-    if not train_success:
-        logd(settings.BASE_DIR + "/api/logs/train_log.txt", "a", -1, "Training Error")
-        return False
-    # return True
+    x = threading.Thread(target=thread_function, args=(start_date, end_date))
+    x.start()
     return "Training process began!"
