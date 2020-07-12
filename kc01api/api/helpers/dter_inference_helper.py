@@ -7,6 +7,7 @@ def processing(list_url):
     list_url = tf.keras.preprocessing.sequence.pad_sequences(np.expand_dims(list_url, 0), maxlen=20, dtype='int64', padding='pre', truncating='pre', value=0)
     softmax = dter_model.predict(list_url)
     results = softmax[0].argsort()[-22:][::-1]
+    results = [r for r in list(results) if r in remap_info]
     print(results)
-    list_rec = [remap_info[nid] for nid in list(results) if (nid != 0 and nid != list_url[0][-1])]
+    list_rec = [remap_info[nid] for nid in results if (nid != 0 and nid != list_url[0][-1])]
     return list_rec[:20]
