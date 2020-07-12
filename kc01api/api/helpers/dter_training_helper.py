@@ -23,6 +23,8 @@ from tensorflow.keras import Sequential
 from tensorflow.keras.layers import Dense, Lambda, Layer, Embedding, LayerNormalization
 import keras
 
+from datetime import datetime, timedelta, timezone
+
 SPLIT_SESSION_SECOND = 3600
 dataset_name = 'Most_Portal'
 # Transformer parameters
@@ -234,7 +236,6 @@ def thread_function(start_date, end_date):
     if not crawl_success:
         logd(settings.BASE_DIR + "/api/logs/train_log.txt", "a", -1, "Crawl Error")
         return False
-    from datetime import datetime, timedelta, timezone
     preprocess_sucess, number_items = preprocess(start_date, end_date)
     if not preprocess_sucess:
         logd(settings.BASE_DIR + "/api/logs/train_log.txt", "a", -1, "Preprocess Error")
