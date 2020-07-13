@@ -433,15 +433,33 @@ def crawl(start_date=None, end_date=None):
     logd(settings.BASE_DIR + "/api/logs/train_log.txt", "a", 15, message3)
     return True
 
-def processing(start_date, end_date):
-    log_file = settings.BASE_DIR + "/api/logs/train_log.txt"
-    if os.path.isfile(log_file):
-        status, progress = status_from_logd(log_file)
-        if status == '0':
-            return "Training process has not finished! Please check status by another api"
-        elif status == '-1':
-            return "Training server are not working right, please check with admin for more information"
-    logd(settings.BASE_DIR + "/api/logs/train_log.txt", "w", 0, "")
-    x = threading.Thread(target=thread_function, args=(start_date, end_date))
-    x.start()
-    return "Training process began!"
+def processing(start_date, end_date, force_train):
+    if end_date is None:
+        end_date = datetime.now()
+    if start_date is None:
+        start_date = end_date - 86400*30
+    if start_date > end_date:
+        t = start_date
+        start_date = end_date
+        end_date = t
+    model_existed = False
+
+    start_str = datetime.fromtimestamp(start_date).strftime("%m%d%Y_%H%M%S")
+    end_str = datetime.fromtimestamp(end_date).strftime("%m%d%Y_%H%M%S")
+    if os.path.isdir(settings.BASE_DIR + "/api/models/MostPortal/model_" + str(start_date) + "_to_" + str(end_date)):
+        model_existed = True
+
+    if not model_existed or (model_existed and force_train):
+        log_file = settings.BASE_DIR + "/api/logs/train_log.txt"
+        if os.path.isfile(log_file):
+            status, progress = status_from_logd(log_file)
+            if status == '0':
+                return "Training process has not finished! Please check status by another api"
+            elif status == '-1':
+                return "Training server are not working right, please check with admin for more information"
+        logd(settings.BASE_DIR + "/api/logs/train_log.txt", "w", 0, "")
+        x = threading.Thread(target=thread_function, args=(start_date, end_date))
+        x.start()
+        return "Training process began!"
+    else:
+        return "Model " + str(start_date) + "_to_" + str(end_date) + " is existed! Use force_train = True if you want to retrain"

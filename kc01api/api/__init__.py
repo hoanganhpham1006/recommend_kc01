@@ -22,7 +22,7 @@ print("Restored successfully DTER Model! " + lastest)
 
 map_url_trainid = pickle.load(open(settings.BASE_DIR + "/api/databases/" + lastest.split('/')[0] + '/map_url_trainid_' + lastest_data_path + '.pkl', 'rb'))
 remap_info = pickle.load(open(settings.BASE_DIR + "/api/databases/" + lastest.split('/')[0] + '/remap_info_' + lastest_data_path + '.pkl', 'rb'))
-
+    
 # #Statistic process
 # most_popular_results = [l.split(' | ') for l in open(settings.BASE_DIR + '/mostpopular.txt', 'rt', encoding='utf-8').readlines()]
 # hot_trend_results = [l.split(' | ') for l in open(settings.BASE_DIR + '/hottrend.txt', 'rt', encoding='utf-8').readlines()]
