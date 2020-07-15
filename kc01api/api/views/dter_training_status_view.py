@@ -20,6 +20,9 @@ class DTERTrainStatusView(APIView):
         return self._format_response()
     
     def _format_response(self):
-        result = processing()
-        return json_format(code=200, message=self.success, data=result, errors=None)
+        status, result = processing()
+        if status == 0:
+            return json_format(code=201, message=self.success, data=result, errors=None)
+        else:
+            return json_format(code=200, message=self.success, data=result, errors=None)
   

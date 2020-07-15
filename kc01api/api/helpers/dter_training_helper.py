@@ -24,6 +24,7 @@ from tensorflow.keras.layers import Dense, Lambda, Layer, Embedding, LayerNormal
 import keras
 
 from datetime import datetime, timedelta, timezone
+import time
 
 SPLIT_SESSION_SECOND = 3600
 dataset_name = 'Most_Portal'
@@ -435,7 +436,7 @@ def crawl(start_date=None, end_date=None):
 
 def processing(start_date, end_date, force_train):
     if end_date is None:
-        end_date = datetime.now()
+        end_date = int(time.time())
     if start_date is None:
         start_date = end_date - 86400*30
     if start_date > end_date:

@@ -7,4 +7,4 @@ def processing():
     if not os.path.isfile(log_file):
         return "There is not any traning process"
     status, progress = status_from_logd(log_file)
-    return progress[:-1]
+    return status, progress[:-1]
