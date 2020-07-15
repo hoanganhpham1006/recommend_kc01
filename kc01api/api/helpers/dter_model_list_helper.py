@@ -11,5 +11,6 @@ def processing(dataset_name):
     while i < len(lines):
         if lines[-i].split('/')[0] == dataset_name:
             current_model = lines[-i].split('/')[1][:-1]
+            break
         i += 1
     return {"list": os.listdir(settings.BASE_DIR + "/api/models/" + dataset_name), "current": current_model}
