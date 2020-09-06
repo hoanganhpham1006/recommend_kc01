@@ -5,7 +5,7 @@ from api.forms.dter_model_set_form import DTERModelSetForm
 from api.helpers.dter_model_set_helper import processing
 from api.helpers.response_format import json_format
 import json
-
+from api import supported_dataset
 class DTERModelSetView(APIView):
     parser_classes = (MultiPartParser,)
     success = 'Set Model Success'
@@ -19,6 +19,8 @@ class DTERModelSetView(APIView):
                 return JsonResponse("JSON Params must have " + param, status=422, safe=False)
         model_name = mydata['model_name']
         dataset_name = mydata['dataset_name']
+        if dataset_name not in supported_dataset:
+            return JsonResponse("Supported datasets: " + supported_dataset, status=422)
         return self._format_response(dataset_name, model_name)
     
     def _format_response(self, dataset_name, model_name):

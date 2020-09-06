@@ -5,6 +5,7 @@ from api.forms.dter_model_list_form import DTERModelListForm
 from api.helpers.dter_model_list_helper import processing
 from api.helpers.response_format import json_format
 import json
+from api import supported_dataset
 
 class DTERModelListView(APIView):
     parser_classes = (MultiPartParser,)
@@ -18,6 +19,8 @@ class DTERModelListView(APIView):
             if param not in mydata:
                 return JsonResponse("JSON Params must have " + param, status=422, safe=False)
         dataset_name = mydata['dataset_name']
+        if dataset_name not in supported_dataset:
+            return JsonResponse("Supported datasets: " + supported_dataset, status=422)
         return self._format_response(dataset_name)
     
     def _format_response(self, dataset_name):

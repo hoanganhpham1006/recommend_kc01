@@ -27,7 +27,6 @@ from datetime import datetime, timedelta, timezone
 import time
 
 SPLIT_SESSION_SECOND = 3600
-dataset_name = 'Most_Portal'
 # Transformer parameters
 d_model = 32 # 512 in the original paper
 d_k = 16 # 64 in the original paper
@@ -232,23 +231,28 @@ class CustomCallback(keras.callbacks.Callback):
 def recall20(y_true, y_pred, k=20, **kwargs):
     return tf.keras.metrics.sparse_top_k_categorical_accuracy(y_true, y_pred, k=k)
 
-def thread_function(start_date, end_date):
-    crawl_success = crawl(start_date, end_date)
+def thread_function(dataset_name, start_date, end_date):
+    crawl_success = crawl(dataset_name, start_date, end_date)
     if not crawl_success:
         logd(settings.BASE_DIR + "/api/logs/train_log.txt", "a", -1, "Crawl Error")
         return False
-    preprocess_sucess, number_items = preprocess(start_date, end_date)
+    preprocess_sucess, number_items = preprocess(dataset_name, start_date, end_date)
     if not preprocess_sucess:
         logd(settings.BASE_DIR + "/api/logs/train_log.txt", "a", -1, "Preprocess Error")
         return False
-    train_success = train_dter(start_date, end_date, number_items)
+    train_success = train_dter(dataset_name, start_date, end_date, number_items)
     if not train_success:
         logd(settings.BASE_DIR + "/api/logs/train_log.txt", "a", -1, "Training Error")
         return False
     logd(settings.BASE_DIR + "/api/logs/train_log.txt", "a", 100, "Training end")
     return True
 
-def train_dter(start_date, end_date, number_items):
+def train_dter(dataset_name, start_date, end_date, number_items):
+    if dataset_name == "MostPortal":
+        dataset_name = "Most_Portal"
+    elif dataset_name == "QNPortal":
+        dataset_name = "QN_Portal"
+
     start_str = datetime.fromtimestamp(start_date).strftime("%m%d%Y_%H%M%S")
     end_str = datetime.fromtimestamp(end_date).strftime("%m%d%Y_%H%M%S")
 
@@ -277,7 +281,7 @@ def train_dter(start_date, end_date, number_items):
     logd(settings.BASE_DIR + "/api/logs/train_log.txt", "a", 60, "Done trainer prepare")   
     
     dter_keras.fit(train_input, train_label, \
-               verbose=1, batch_size=512, epochs=80, \
+               verbose=1, batch_size=64, epochs=80, \
                validation_data=(test_input, test_label),
                callbacks=[CustomCallback()])
     
@@ -286,7 +290,15 @@ def train_dter(start_date, end_date, number_items):
     return True
     
 
-def preprocess(start_date, end_date):
+def preprocess(dataset_name, start_date, end_date):
+    if dataset_name == "MostPortal":
+        dataset_name = "Most_Portal"
+    elif dataset_name == "QNPortal":
+        dataset_name = "QN_Portal"
+
+    if not dataset_config[dataset_name]["folder"]:
+        os.mkdir(dataset_config[dataset_name]["folder"]) 
+
     start_str = datetime.fromtimestamp(start_date).strftime("%m%d%Y_%H%M%S")
     end_str = datetime.fromtimestamp(end_date).strftime("%m%d%Y_%H%M%S")
     ext_trans = "_from_" + str(start_date) + "_to_" + str(end_date) + ".csv"
@@ -333,7 +345,7 @@ def preprocess(start_date, end_date):
             continue
         uid = trans[0][i]
         lastest_timestamp = trans[3][i]
-        trans['visited'][i] = True
+        trans.loc[i, "visited"] = True
         cur_sess = []
         time_cur_sess = trans[3][i]
         
@@ -351,7 +363,7 @@ def preprocess(start_date, end_date):
             if trans[1][j] in map_id_nid and cur_sess[-1] != map_id_nid[trans[1][j]]:
                 cur_sess.append(map_id_nid[trans[1][j]])
                 lastest_timestamp = trans[3][j]
-                trans['visited'][j] = True
+                trans.loc[i, "visited"] = True
             j += 1
             if j == number_rows:
                     break
@@ -360,12 +372,13 @@ def preprocess(start_date, end_date):
             all_sess.append([int(time_cur_sess), cur_sess])
         del cur_sess
 
-    maxtime = trans[3][number_rows-1]
+    maxtime = trans.iloc[-1, 3]
 
     SPLIT_TEST_TIMESTAMP = maxtime - 86400 * 1
     
     tra_sess = list(filter(lambda x: x[0] < SPLIT_TEST_TIMESTAMP, all_sess))
     tes_sess = list(filter(lambda x: x[0] >= SPLIT_TEST_TIMESTAMP, all_sess))
+
     train_data = []
     train_label = []
     remap_item = {} #nid -> train_id
@@ -399,7 +412,7 @@ def preprocess(start_date, end_date):
             test_label.append(new_sess[i])
 
     logd(settings.BASE_DIR + "/api/logs/train_log.txt", "a", 30, "Done process from CSV")
-    print("Data processed: Train: %d %d, Test: %d %d".format(len(train_data), len(train_label), len(test_data), len(test_label)))
+    print("Data processed: Train: " + str(len(train_data)) + ", Test: " + str(len(test_data)))
     
     with open(settings.BASE_DIR + "/api/databases/" + dataset_config[dataset_name]["dataset"] + "/train.pkl", "wb") as f:
         pickle.dump([train_data, train_label], f)
@@ -422,7 +435,12 @@ def preprocess(start_date, end_date):
     print("NUMBER ITEMS: " + str(number_items))
     return True, number_items
 
-def crawl(start_date=None, end_date=None):    
+def crawl(dataset_name, start_date=None, end_date=None):
+    if dataset_name == "MostPortal":
+        dataset_name = "Most_Portal"
+    elif dataset_name == "QNPortal":
+        dataset_name = "QN_Portal"
+
     cfg = dataset_config[dataset_name]
     message1 = cat_tbl.read_data_from_api(cfg["list_cat_api"], cfg["folder"], cfg["dataset"])
     logd(settings.BASE_DIR + "/api/logs/train_log.txt", "a", 5, message1)
@@ -434,7 +452,7 @@ def crawl(start_date=None, end_date=None):
     logd(settings.BASE_DIR + "/api/logs/train_log.txt", "a", 15, message3)
     return True
 
-def processing(start_date, end_date, force_train):
+def processing(dataset_name, start_date, end_date, force_train):
     if end_date is None:
         end_date = int(time.time())
     if start_date is None:
@@ -447,7 +465,7 @@ def processing(start_date, end_date, force_train):
 
     start_str = datetime.fromtimestamp(start_date).strftime("%m%d%Y_%H%M%S")
     end_str = datetime.fromtimestamp(end_date).strftime("%m%d%Y_%H%M%S")
-    if os.path.isdir(settings.BASE_DIR + "/api/models/MostPortal/model_" + str(start_date) + "_to_" + str(end_date)):
+    if os.path.isdir(settings.BASE_DIR + "/api/models/" + dataset_name +"/model_" + str(start_date) + "_to_" + str(end_date)):
         model_existed = True
 
     if not model_existed or (model_existed and force_train):
@@ -459,7 +477,7 @@ def processing(start_date, end_date, force_train):
             elif status == '-1':
                 return "Training server are not working right, please check with admin for more information"
         logd(settings.BASE_DIR + "/api/logs/train_log.txt", "w", 0, "")
-        x = threading.Thread(target=thread_function, args=(start_date, end_date))
+        x = threading.Thread(target=thread_function, args=(dataset_name, start_date, end_date))
         x.start()
         return "Training process began!"
     else:

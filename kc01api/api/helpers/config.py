@@ -32,7 +32,7 @@ dataset_config = {
         "host": "vsmarty",
         "db_name": "countly",
         "collection_name": "did_url_r1_5d1abdb4a3d66b55d6ed38e8",
-        "folder": "D:\Working\PythonProjects\Recommendation\output\QNPortal",
+        "folder": settings.BASE_DIR + "/api/databases/QNPortal",
         "transaction_ht_map": "transaction_QNPortal_HT.csv",
         "transaction_mp_map": "transaction_QNPortal_MP.csv",
         "transaction_all_map": "transaction_QNPortal_all.csv",
