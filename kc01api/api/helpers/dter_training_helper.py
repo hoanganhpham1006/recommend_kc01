@@ -296,9 +296,6 @@ def preprocess(dataset_name, start_date, end_date):
     elif dataset_name == "QNPortal":
         dataset_name = "QN_Portal"
 
-    if not os.path.isdir(dataset_config[dataset_name]["folder"]):
-        os.mkdir(dataset_config[dataset_name]["folder"]) 
-
     start_str = datetime.fromtimestamp(start_date).strftime("%m%d%Y_%H%M%S")
     end_str = datetime.fromtimestamp(end_date).strftime("%m%d%Y_%H%M%S")
     ext_trans = "_from_" + str(start_date) + "_to_" + str(end_date) + ".csv"
@@ -453,6 +450,9 @@ def crawl(dataset_name, start_date=None, end_date=None):
     return True
 
 def processing(dataset_name, start_date, end_date, force_train):
+    if not os.path.isdir(settings.BASE_DIR + "/api/databases/" + dataset_name):
+        os.mkdir(settings.BASE_DIR + "/api/databases/" + dataset_name) 
+
     if end_date is None:
         end_date = int(time.time())
     if start_date is None:
