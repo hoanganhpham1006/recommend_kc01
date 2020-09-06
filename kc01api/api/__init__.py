@@ -1,6 +1,7 @@
 import tensorflow as tf
 import pickle
 from django.conf import settings
+import os
 
 status = {} #'MostPortal': 0, 'QNPortal': 0, 'PTIT': 0
 lastest = {}
