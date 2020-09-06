@@ -296,7 +296,7 @@ def preprocess(dataset_name, start_date, end_date):
     elif dataset_name == "QNPortal":
         dataset_name = "QN_Portal"
 
-    if not dataset_config[dataset_name]["folder"]:
+    if not os.path.isdir(dataset_config[dataset_name]["folder"]):
         os.mkdir(dataset_config[dataset_name]["folder"]) 
 
     start_str = datetime.fromtimestamp(start_date).strftime("%m%d%Y_%H%M%S")
