@@ -19,9 +19,12 @@ class DTERInferView(APIView):
         list_url = mydata['list_url']
         dataset_name = mydata['dataset_name']
         if dataset_name not in supported_dataset:
-            return JsonResponse("Supported datasets: " + str(supported_dataset), status=422)
-        if dataset_name not in status.keys():
-            return JsonResponse("Trained model is not existed: " + str(supported_dataset), status=422)
+            str_supported_datasets = ""
+            for dataset in supported_dataset:
+                str_supported_datasets += " " + dataset
+            return json_format(code=422, message=self.failure, data="", errors="Supported dataset_name: " + str_supported_datasets)
+        if dataset_name not in status:
+            return json_format(code=422, message=self.failure, data="", errors="Trained model " + dataset_name +  " is not set")
         return self._format_response(list_url, dataset_name)
     
     def _format_response(self, list_url, dataset_name):

@@ -10,7 +10,7 @@ lastest_model_path = {}
 lastest_data_path = {}
 map_url_trainid = {}
 remap_info = {}
-supported_dataset = ['MostPortal', 'QNPortal']
+supported_dataset = ["MostPortal", "QNPortal"]
 
 def recall20(y_true, y_pred, k=20, **kwargs):
     return tf.keras.metrics.sparse_top_k_categorical_accuracy(y_true, y_pred, k=k)

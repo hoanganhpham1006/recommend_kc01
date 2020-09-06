@@ -1,12 +1,13 @@
 from django.conf import settings
 import os
-from api import dter_model, remap_info, map_url_trainid, tf, recall20
+from api import dter_model, remap_info, map_url_trainid, tf, recall20, status
 import pickle
 
 def processing(dataset_name, model_name):
     if not os.path.isdir(os.path.join(settings.BASE_DIR, "api/models", dataset_name, model_name)):
         return False
     else:
+        status[dataset_name] = 0
         print("Restoring DTER Model .. " + dataset_name + "/" + model_name)
         model_path = settings.BASE_DIR + "/api/models/" + dataset_name + "/" + model_name
         data_path = settings.BASE_DIR + "/api/databases/" + dataset_name
@@ -23,4 +24,5 @@ def processing(dataset_name, model_name):
         remap_info[dataset_name] = pickle.load(open(data_path + '/remap_info_' + subfix + '.pkl', 'rb'))
         with open(settings.BASE_DIR + "/api/logs/model_log.txt", "a") as f:
             f.write(dataset_name + "/" + model_name + "\n")
+        status[dataset_name] = 1
         return True
