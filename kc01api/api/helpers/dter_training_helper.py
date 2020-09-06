@@ -281,7 +281,7 @@ def train_dter(dataset_name, start_date, end_date, number_items):
     logd(settings.BASE_DIR + "/api/logs/train_log.txt", "a", 60, "Done trainer prepare")   
     
     dter_keras.fit(train_input, train_label, \
-               verbose=1, batch_size=64, epochs=80, \
+               verbose=1, batch_size=64, epochs=20, \
                validation_data=(test_input, test_label),
                callbacks=[CustomCallback()])
     
