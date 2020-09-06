@@ -16,8 +16,12 @@ def recall20(y_true, y_pred, k=20, **kwargs):
     return tf.keras.metrics.sparse_top_k_categorical_accuracy(y_true, y_pred, k=k)
 
 if not os.path.isdir(settings.BASE_DIR + "/api/logs"):
-    os.mkdir(settings.BASE_DIR + "/api/logs") 
-    
+    os.mkdir(settings.BASE_DIR + "/api/logs")
+if not os.path.isdir(settings.BASE_DIR + "/api/databases"):
+    os.mkdir(settings.BASE_DIR + "/api/databases") 
+if not os.path.isdir(settings.BASE_DIR + "/api/models"):
+    os.mkdir(settings.BASE_DIR + "/api/models") 
+
 if os.path.isfile(settings.BASE_DIR + "/api/logs/model_log.txt"):
     with open(settings.BASE_DIR + "/api/logs/model_log.txt", "r") as f:
         lines = f.readlines()
