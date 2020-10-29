@@ -27,6 +27,8 @@ from datetime import datetime, timedelta, timezone
 import time
 
 SPLIT_SESSION_SECOND = 3600
+QN_TRAIN_LOG = "/api/logs/train_log_QN.txt"
+MOST_TRAIN_LOG = "/api/logs/train_log_M.txt"
 # Transformer parameters
 d_model = 32 # 512 in the original paper
 d_k = 16 # 64 in the original paper
@@ -218,12 +220,14 @@ class DTER(Model):
     return decoder_output
 
 class CustomCallback(keras.callbacks.Callback):
+    def __init__(self, train_log_file):
+        self.train_log_file = train_log_file
     def on_epoch_end(self, epoch, logs=None):
         if (epoch + 1) % 2 == 0:
             if epoch == 79:
-                logd(settings.BASE_DIR + "/api/logs/train_log.txt", "a", 60 + (epoch + 1)//2 - 1, "Training End")
+                logd(settings.BASE_DIR + self.train_log_file, "a", 60 + (epoch + 1)//2 - 1, "Training End")
             else:
-                logd(settings.BASE_DIR + "/api/logs/train_log.txt", "a", 60 + (epoch + 1)//2, "Training..")
+                logd(settings.BASE_DIR + self.train_log_file, "a", 60 + (epoch + 1)//2, "Training..")
 
 
 
@@ -232,27 +236,37 @@ def recall20(y_true, y_pred, k=20, **kwargs):
     return tf.keras.metrics.sparse_top_k_categorical_accuracy(y_true, y_pred, k=k)
 
 def thread_function(dataset_name, start_date, end_date):
+    if dataset_name == "MostPortal":
+        dataset_name = "Most_Portal"
+        train_log_file = MOST_TRAIN_LOG
+    elif dataset_name == "QNPortal":
+        dataset_name = "QN_Portal"
+        train_log_file = QN_TRAIN_LOG
+
     crawl_success = crawl(dataset_name, start_date, end_date)
     if not crawl_success:
-        logd(settings.BASE_DIR + "/api/logs/train_log.txt", "a", -1, "Crawl Error")
+        logd(settings.BASE_DIR + train_log_file, "a", -1, "Crawl Error")
         return False
     preprocess_sucess, number_items = preprocess(dataset_name, start_date, end_date)
     if not preprocess_sucess:
-        logd(settings.BASE_DIR + "/api/logs/train_log.txt", "a", -1, "Preprocess Error")
+        logd(settings.BASE_DIR + train_log_file, "a", -1, "Preprocess Error")
         return False
     train_success = train_dter(dataset_name, start_date, end_date, number_items)
     if not train_success:
-        logd(settings.BASE_DIR + "/api/logs/train_log.txt", "a", -1, "Training Error")
+        logd(settings.BASE_DIR + train_log_file, "a", -1, "Training Error")
         return False
-    logd(settings.BASE_DIR + "/api/logs/train_log.txt", "a", 100, "Training end")
+    logd(settings.BASE_DIR + train_log_file, "a", 100, "Training end")
     return True
 
 def train_dter(dataset_name, start_date, end_date, number_items):
     if dataset_name == "MostPortal":
         dataset_name = "Most_Portal"
+        train_log_file = MOST_TRAIN_LOG
     elif dataset_name == "QNPortal":
         dataset_name = "QN_Portal"
+        train_log_file = QN_TRAIN_LOG
 
+    
     start_str = datetime.fromtimestamp(start_date).strftime("%m%d%Y_%H%M%S")
     end_str = datetime.fromtimestamp(end_date).strftime("%m%d%Y_%H%M%S")
 
@@ -262,7 +276,7 @@ def train_dter(dataset_name, start_date, end_date, number_items):
     with open(settings.BASE_DIR + "/api/databases/" + dataset_config[dataset_name]["dataset"] + "/test.pkl", 'rb') as f:
         test_sessions = pickle.load(f)
 
-    logd(settings.BASE_DIR + "/api/logs/train_log.txt", "a", 55, "Done trainer load packed data")
+    logd(settings.BASE_DIR + train_log_file, "a", 55, "Done trainer load packed data")
     
     train_input = tf.keras.preprocessing.sequence.pad_sequences(train_sessions[0], maxlen=max_token_length, dtype='int64', padding='pre', truncating='pre', value=0)
     train_label = np.array(train_sessions[1], np.float32)
@@ -278,23 +292,25 @@ def train_dter(dataset_name, start_date, end_date, number_items):
                 loss='sparse_categorical_crossentropy',
                 metrics=[recall20])
 
-    logd(settings.BASE_DIR + "/api/logs/train_log.txt", "a", 60, "Done trainer prepare")   
+    logd(settings.BASE_DIR + train_log_file, "a", 60, "Done trainer prepare")   
     
     dter_keras.fit(train_input, train_label, \
                verbose=1, batch_size=64, epochs=20, \
                validation_data=(test_input, test_label),
-               callbacks=[CustomCallback()])
+               callbacks=[CustomCallback(train_log_file)])
     
     dter_keras.save(settings.BASE_DIR + "/api/models/" + dataset_config[dataset_name]["dataset"] + "/model_" + start_str + "_to_" + end_str)
-    logd(settings.BASE_DIR + "/api/logs/train_log.txt", "a", 100, "Done saving model!")
+    logd(settings.BASE_DIR + train_log_file, "a", 100, "Done saving model!")
     return True
     
 
 def preprocess(dataset_name, start_date, end_date):
     if dataset_name == "MostPortal":
         dataset_name = "Most_Portal"
+        train_log_file = MOST_TRAIN_LOG
     elif dataset_name == "QNPortal":
         dataset_name = "QN_Portal"
+        train_log_file = QN_TRAIN_LOG
 
     start_str = datetime.fromtimestamp(start_date).strftime("%m%d%Y_%H%M%S")
     end_str = datetime.fromtimestamp(end_date).strftime("%m%d%Y_%H%M%S")
@@ -309,7 +325,7 @@ def preprocess(dataset_name, start_date, end_date):
     trans = pandas.read_csv(tran_file, header=None).assign(visited=False).sort_values(by=[3, 1], inplace=False)
     posts = pandas.read_csv(post_file, header=None)
 
-    logd(settings.BASE_DIR + "/api/logs/train_log.txt", "a", 20, "Done Read CSV")
+    logd(settings.BASE_DIR + train_log_file, "a", 20, "Done Read CSV")
 
     map_id_title = {}
     for row in posts.iterrows():
@@ -408,25 +424,25 @@ def preprocess(dataset_name, start_date, end_date):
             test_data.append(new_sess[:i])
             test_label.append(new_sess[i])
 
-    logd(settings.BASE_DIR + "/api/logs/train_log.txt", "a", 30, "Done process from CSV")
+    logd(settings.BASE_DIR + train_log_file, "a", 30, "Done process from CSV")
     print("Data processed: Train: " + str(len(train_data)) + ", Test: " + str(len(test_data)))
     
     with open(settings.BASE_DIR + "/api/databases/" + dataset_config[dataset_name]["dataset"] + "/train.pkl", "wb") as f:
         pickle.dump([train_data, train_label], f)
     del train_data, train_label
-    logd(settings.BASE_DIR + "/api/logs/train_log.txt", "a", 35, "")
+    logd(settings.BASE_DIR + train_log_file, "a", 35, "")
     with open(settings.BASE_DIR + "/api/databases/" + dataset_config[dataset_name]["dataset"] + "/test.pkl", 'wb') as f:
         pickle.dump([test_data, test_label], f)
     del test_data, test_label
-    logd(settings.BASE_DIR + "/api/logs/train_log.txt", "a", 40, "")
+    logd(settings.BASE_DIR + train_log_file, "a", 40, "")
     with open(settings.BASE_DIR + "/api/databases/" + dataset_config[dataset_name]["dataset"] + "/remap_info_" + start_str + "_to_" + end_str  + ".pkl", 'wb') as f:
         pickle.dump(remap_info, f)
     del remap_info
-    logd(settings.BASE_DIR + "/api/logs/train_log.txt", "a", 45, "")
+    logd(settings.BASE_DIR + train_log_file, "a", 45, "")
     with open(settings.BASE_DIR + "/api/databases/" + dataset_config[dataset_name]["dataset"] + "/map_url_trainid_" + start_str + "_to_" + end_str + ".pkl", 'wb') as f:
         pickle.dump(map_url_trainid, f)
     del map_url_trainid
-    logd(settings.BASE_DIR + "/api/logs/train_log.txt", "a", 50, "Done Preprocess")
+    logd(settings.BASE_DIR + train_log_file, "a", 50, "Done Preprocess")
     
     number_items = len(map_url_nid)
     print("NUMBER ITEMS: " + str(number_items))
@@ -435,23 +451,34 @@ def preprocess(dataset_name, start_date, end_date):
 def crawl(dataset_name, start_date=None, end_date=None):
     if dataset_name == "MostPortal":
         dataset_name = "Most_Portal"
+        train_log_file = MOST_TRAIN_LOG
     elif dataset_name == "QNPortal":
         dataset_name = "QN_Portal"
+        train_log_file = QN_TRAIN_LOG
 
     cfg = dataset_config[dataset_name]
-    message1 = cat_tbl.read_data_from_api(cfg["list_cat_api"], cfg["folder"], cfg["dataset"])
-    logd(settings.BASE_DIR + "/api/logs/train_log.txt", "a", 5, message1)
-    message2 = trans_tbl.read_data_from_api(cfg["db_name"], cfg["collection_name"], cfg["list_post_api"],
-                                                start_date, end_date, cfg["folder"], cfg["dataset"], type='crawl')
-    logd(settings.BASE_DIR + "/api/logs/train_log.txt", "a", 10, message2)
-    message3 = post_tbl.read_data_from_api(cfg["list_post_api"], None, cfg["folder"], cfg["dataset"],
-                                               s_time=None, e_time=None, type='crawl')
-    logd(settings.BASE_DIR + "/api/logs/train_log.txt", "a", 15, message3)
+    try:
+        message1 = cat_tbl.read_data_from_api(cfg["list_cat_api"], cfg["folder"], cfg["dataset"])
+        logd(settings.BASE_DIR + train_log_file, "a", 5, message1)
+        message2 = trans_tbl.read_data_from_api(cfg["db_name"], cfg["collection_name"], cfg["list_post_api"],
+                                                    start_date, end_date, cfg["folder"], cfg["dataset"], type='crawl')
+        logd(settings.BASE_DIR + train_log_file, "a", 10, message2)
+        message3 = post_tbl.read_data_from_api(cfg["list_post_api"], None, cfg["folder"], cfg["dataset"],
+                                                s_time=None, e_time=None, type='crawl')
+        logd(settings.BASE_DIR + train_log_file, "a", 15, message3)
+    except:
+        return False
     return True
 
 def processing(dataset_name, start_date, end_date, force_train):
     if not os.path.isdir(settings.BASE_DIR + "/api/databases/" + dataset_name):
         os.mkdir(settings.BASE_DIR + "/api/databases/" + dataset_name) 
+    if dataset_name == "MostPortal":
+        dataset_name = "Most_Portal"
+        train_log_file = MOST_TRAIN_LOG
+    elif dataset_name == "QNPortal":
+        dataset_name = "QN_Portal"
+        train_log_file = QN_TRAIN_LOG
 
     if end_date is None:
         end_date = int(time.time())
@@ -469,14 +496,14 @@ def processing(dataset_name, start_date, end_date, force_train):
         model_existed = True
 
     if not model_existed or (model_existed and force_train):
-        log_file = settings.BASE_DIR + "/api/logs/train_log.txt"
+        log_file = settings.BASE_DIR + train_log_file
         if os.path.isfile(log_file):
             status, progress = status_from_logd(log_file)
             if status == '0':
                 return "Training process has not finished! Please check status by another api"
             elif status == '-1':
                 return "Training server are not working right, please check with admin for more information"
-        logd(settings.BASE_DIR + "/api/logs/train_log.txt", "w", 0, "")
+        logd(settings.BASE_DIR + train_log_file, "w", 0, "")
         x = threading.Thread(target=thread_function, args=(dataset_name, start_date, end_date))
         x.start()
         return "Training process began!"

@@ -1,0 +1,5 @@
+.DS_Store
+data/*
+sbrd_demo_most/*
+*.zip
+kc01api/api/logs/*
