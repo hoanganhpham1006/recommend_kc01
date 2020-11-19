@@ -236,13 +236,10 @@ def recall20(y_true, y_pred, k=20, **kwargs):
     return tf.keras.metrics.sparse_top_k_categorical_accuracy(y_true, y_pred, k=k)
 
 def thread_function(dataset_name, start_date, end_date):
-    if dataset_name == "MostPortal":
-        dataset_name = "Most_Portal"
+    if dataset_name == "Most_Portal":
         train_log_file = MOST_TRAIN_LOG
-    elif dataset_name == "QNPortal":
-        dataset_name = "QN_Portal"
+    elif dataset_name == "QN_Portal":
         train_log_file = QN_TRAIN_LOG
-
     crawl_success = crawl(dataset_name, start_date, end_date)
     if not crawl_success:
         logd(settings.BASE_DIR + train_log_file, "a", -1, "Crawl Error")
@@ -259,11 +256,9 @@ def thread_function(dataset_name, start_date, end_date):
     return True
 
 def train_dter(dataset_name, start_date, end_date, number_items):
-    if dataset_name == "MostPortal":
-        dataset_name = "Most_Portal"
+    if dataset_name == "Most_Portal":
         train_log_file = MOST_TRAIN_LOG
-    elif dataset_name == "QNPortal":
-        dataset_name = "QN_Portal"
+    elif dataset_name == "QN_Portal":
         train_log_file = QN_TRAIN_LOG
 
     
@@ -305,11 +300,9 @@ def train_dter(dataset_name, start_date, end_date, number_items):
     
 
 def preprocess(dataset_name, start_date, end_date):
-    if dataset_name == "MostPortal":
-        dataset_name = "Most_Portal"
+    if dataset_name == "Most_Portal":
         train_log_file = MOST_TRAIN_LOG
-    elif dataset_name == "QNPortal":
-        dataset_name = "QN_Portal"
+    elif dataset_name == "QN_Portal":
         train_log_file = QN_TRAIN_LOG
 
     start_str = datetime.fromtimestamp(start_date).strftime("%m%d%Y_%H%M%S")
@@ -449,11 +442,9 @@ def preprocess(dataset_name, start_date, end_date):
     return True, number_items
 
 def crawl(dataset_name, start_date=None, end_date=None):
-    if dataset_name == "MostPortal":
-        dataset_name = "Most_Portal"
+    if dataset_name == "Most_Portal":
         train_log_file = MOST_TRAIN_LOG
-    elif dataset_name == "QNPortal":
-        dataset_name = "QN_Portal"
+    elif dataset_name == "QN_Portal":
         train_log_file = QN_TRAIN_LOG
 
     cfg = dataset_config[dataset_name]
