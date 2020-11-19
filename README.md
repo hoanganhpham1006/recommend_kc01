@@ -19,7 +19,7 @@ pip install -r kc01api/requirements.txt
 Using gunicorn, CUDA is needed
 
 ```
-rm kc01api/api/logs/*
+rm kc01api/api/logs/*train*
 CUDA_VISIBLE_DEVICES=1 gunicorn django_api_base.wsgi -b 0.0.0.0:5009 -w 1
 ```
 
