@@ -2,6 +2,9 @@ from api.helpers.log_status_helper import status_from_logd
 from django.conf import settings
 import os
 
+QN_TRAIN_LOG = "/api/logs/train_log_QN.txt"
+MOST_TRAIN_LOG = "/api/logs/train_log_M.txt"
+
 def processing(dataset_name):
     if dataset_name == "MostPortal":
         dataset_name = "Most_Portal"
