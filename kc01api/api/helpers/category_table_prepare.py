@@ -1,6 +1,5 @@
 from api.helpers.common import *
 
-
 def read_data_from_api(url, output_dir, dataset):
     if dataset == 'MostPortal':
         success = login_mostportal()
@@ -16,7 +15,7 @@ def read_data_from_api(url, output_dir, dataset):
         cat_dict = parse_json_data(data, dataset)
         cat_path = os.path.join(output_dir, 'cat_' + dataset + '_all' + '.csv')
         write_dict_to_csv(cat_dict, cat_path)
-        message = 'Write category data done'
+        message = 'Write category data done, file is saved at: ' + cat_path
         print(message)
         return message
 

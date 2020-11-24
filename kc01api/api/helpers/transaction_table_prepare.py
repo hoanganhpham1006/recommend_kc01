@@ -3,6 +3,7 @@ import sys
 from pathlib import Path
 from api.helpers.config import host_config
 from api.helpers.common import *
+import sys
 
 sys.path.append(str(Path(os.getcwd()).parent))
 
@@ -88,8 +89,10 @@ def read_data_from_api(db_name, collection, list_post_api, s_time=None, e_time=N
             with open(file_path, 'w', newline='', encoding="utf-8") as f:
                 writer = csv.writer(f)
                 writer.writerows(events)
-            message = 'Write transaction data done!'
-            return message
+            message = 'Write transaction data done, file is saved at: ' + file_path
+            print(message)
+            message2 = 'Write url data done, file is saved at: ' + url_path
+            return [message, message2]
         else:
             raise ValueError("Collection size is lower than 20!")
 

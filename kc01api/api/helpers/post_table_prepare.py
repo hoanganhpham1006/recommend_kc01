@@ -1,6 +1,6 @@
 from api.helpers.common import *
 from api.helpers.config import dataset_config as cfg
-
+import datetime
 
 def read_data_from_api(list_post_api, detail_post_api, output_dir, dataset,
                        full_data=False, s_time=None, e_time=None, type='crawl'):
@@ -9,23 +9,31 @@ def read_data_from_api(list_post_api, detail_post_api, output_dir, dataset,
         if not success:
             print('Error login!')
             return
+    print("login success!")
 
     resp = requests.get(list_post_api)
     if resp.status_code != 200:
         print("error ", resp.status_code)
     else:
+        print("fetch data from server done!")
         if type == 'mp':
             output_path = os.path.join(output_dir, 'post_' + dataset + '_MP' + '.csv')
         elif type == 'ht':
             output_path = os.path.join(output_dir, 'post_' + dataset + '_HT' + '.csv')
         else:
             output_path = generate_output_filepath(output_dir, dataset, 'post', s_time, e_time)
+        print("generate output path done!")
 
         post_list = read_id_list(output_dir + '/post_' + dataset + '_full_all.csv') if full_data else []
+        print("read current post list done!")
+
         data = resp.json() if is_json(resp.text) else get_mostportal_resp_content(resp.text, normalize=True)
+        import json
+        with open(output_dir+'/data.json', 'w') as outfile:
+            json.dump(data, outfile)
         parse_json_data(data, dataset, detail_post_api, post_list, output_dir, output_path,
                         full_data, s_time, e_time)
-        message = 'Write post data done!'
+        message = 'Write post data done, file is saved at: ' + output_path
         print(message)
         return message
 
@@ -67,18 +75,18 @@ def parse_json_data(data, dataset, detail_post_api, post_list, output_dir, outpu
 
         if in_time_range(s_time, e_time, datetime):
             all_posts.append({
-                'id': post_id,
-                'title': post_title,
-                'cat_id': cat_id,
-                'datetime': datetime
+                '1_id': post_id,
+                '2_title': post_title,
+                '3_cat_id': cat_id,
+                '4_datetime': datetime
             })
 
         if full_data and (post_id not in post_list):
             post_data_full = {
-                'id': post_id,
-                'title': post_title,
-                'cat_id': cat_id,
-                'datetime': datetime
+                '1_id': post_id,
+                '2_title': post_title,
+                '3_cat_id': cat_id,
+                '4_datetime': datetime
             }
 
             post_data_full, res_code = get_post_detail(post_data_full, detail_post_api, item, dataset, output_dir)
@@ -125,11 +133,11 @@ def get_post_detail(post_data, detail_post_api, raw_item, dataset, output_dir):
                             row_text.append(td.text.strip())
                     txt_content.append(preprocess_text('\\t'.join(row_text)))
 
-                post_data['content'] = '\\n'.join(txt_content)
-                post_data['summary'] = preprocess_text(data[0]['TomTat'])
-                print(post_data['content'])
+                post_data['4_content'] = '\\n'.join(txt_content)
+                post_data['5_summary'] = preprocess_text(data[0]['TomTat'])
+                print(post_data['4_content'])
 
-                save_attachments(soup, post_data['id'], dataset, output_dir)
+                # save_attachments(soup, post_data['id'], dataset, output_dir)
 
                 return post_data, 0
 
@@ -157,21 +165,23 @@ def get_post_detail(post_data, detail_post_api, raw_item, dataset, output_dir):
                     row_text.append(td.text.strip())
             txt_content.append(preprocess_text('\\t'.join(row_text)))
 
-        post_data['content'] = '\\n'.join(txt_content)
-        post_data['summary'] = txt_summary
-        print(post_data['content'])
+        post_data['4_content'] = '\\n'.join(txt_content)
+        post_data['5_summary'] = txt_summary
+        print(post_data['4_content'])
 
-        save_attachments(soup, post_data['id'], dataset, output_dir)
+        # save_attachments(soup, post_data['id'], dataset, output_dir)
 
         return post_data, 0
 
     elif dataset == 'MostPortal':
-        print('New post:', detail_post_api + str(post_data['id']))
-        resp = requests.get(detail_post_api + str(post_data['id']))
+        # print(post_data)
+        print('New post:', detail_post_api + str(post_data['1_id']))
+        resp = requests.get(detail_post_api + str(post_data['1_id']))
         if resp.status_code != 200:
             print("error ", resp.status_code)
         else:
             data = get_mostportal_resp_content(resp.text, normalize=True, type='Getpostsbyid')
+            print(data)
             if len(data) > 0:
                 html_content = html.unescape(data[0]['content'])
                 soup = BeautifulSoup(html_content, "lxml")
@@ -190,11 +200,11 @@ def get_post_detail(post_data, detail_post_api, raw_item, dataset, output_dir):
                             row_text.append(td.text.strip())
                     txt_content.append(preprocess_text('\\t'.join(row_text)))
 
-                post_data['content'] = '\\n'.join(txt_content)
-                post_data['summary'] = preprocess_text(html.unescape(data[0]['description']))
-                print(post_data['content'])
+                post_data['4_content'] = '\\n'.join(txt_content)
+                post_data['5_summary'] = preprocess_text(html.unescape(data[0]['description']))
+                print(post_data['4_content'])
 
-                save_attachments(soup, post_data['id'], dataset, output_dir)
+                # save_attachments(soup, post_data['id'], dataset, output_dir)
 
                 return post_data, 0
     return None, 0
@@ -233,9 +243,9 @@ def save_attachments(soup, post_id, dataset, output_dir):
 def get_post_title_from_local(dataset, items):
     post_list = {}
     with open(os.path.join(cfg[dataset]["folder"], cfg[dataset]["post_detail_db"]), encoding="UTF8") as f:
-        rd = csv.DictReader(f, delimiter=',')
+        rd = csv.reader(f, delimiter=',')
         for row in rd:
-            post_list[str(row["id"])] = row
+            post_list[str(row[0])] = row
 
     print(len(post_list))
 
@@ -250,7 +260,7 @@ def get_post_title_from_local(dataset, items):
         for item in items:
             if item['id'] in post_list.keys():
                 # print(id, post_list[id]['title'])
-                item['title']=post_list[item['id']]['title']
+                item['title']=post_list[item['id']][1]
                 result.append(item)
             else:
                 print("key "+item['id']+" is not exist")
@@ -312,11 +322,15 @@ if __name__ == '__main__':
     # read_data_from_api('http://portal.ptit.edu.vn/giaovu/api/cat',
     #                    None,
     #                    '../output/PTITGiaovu', 'PTITGiaovu', full_data=True)
-    # read_data_from_api('https://www.most.gov.vn/_layouts/15/WebService/Getdataportal.asmx/GetListposts',
-    #                    'https://www.most.gov.vn/_layouts/15/WebService/Getdataportal.asmx/Getpostsbyid?id=',
-    #                    '../output/MostPortal', 'MostPortal', full_data=True)
 
-    get_post_title_from_local("QN_Portal", "131072")
+
+
+    year = datetime.datetime.today().year
+    read_data_from_api('https://www.most.gov.vn/_layouts/15/WebService/Getdataportal.asmx/GetListpostsByYears?year='+str(year),
+                       'https://www.most.gov.vn/_layouts/15/WebService/Getdataportal.asmx/Getpostsbyid?id=',
+                       '../output/MostPortal', 'MostPortal')
+
+    # get_post_title_from_local("QN_Portal", "131072")
     # map_datetime_to_old_data('http://quangnam.gov.vn/cms/webservices/Thongkebaiviet.asmx/ListBaiviet',
     #                          '../output/QNPortal', 'QNPortal')
     # map_datetime_to_old_data('https://www.most.gov.vn/_layouts/15/WebService/Getdataportal.asmx/GetListposts',

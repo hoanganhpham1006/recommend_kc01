@@ -5,8 +5,8 @@ import csv
 import re
 import os
 import time
+import datetime
 import html
-from datetime import datetime
 
 from xml.etree import ElementTree
 from bs4 import BeautifulSoup
@@ -31,7 +31,7 @@ def append_list_to_csv(_list, output_path, mode='a'):
     f = csv.writer(open(output_path, mode, encoding='utf-8', newline='\n'), quoting=csv.QUOTE_NONNUMERIC)
 
     for item in _list:
-        f.writerow([item[att] for att in item])
+        f.writerow([item[att] for att in sorted(item.keys())])
 
 
 def write_list_to_csv(_list, output_path, delimiter='|'):
@@ -211,5 +211,5 @@ def normalize_mostportal_content(json_text, type):
 
 def convert_datetime_mostportal(datetime_str):
     # datetime_str = '03/07/2020 15:27'
-    t = time.mktime(datetime.strptime(datetime_str, "%d/%m/%Y %H:%M").timetuple())
+    t = time.mktime(datetime.datetime.strptime(datetime_str, "%d/%m/%Y %H:%M").timetuple())
     return int(t)

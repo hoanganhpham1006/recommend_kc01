@@ -1,4 +1,6 @@
 from django.conf import settings
+import datetime
+year = datetime.datetime.today().year
 
 host_config = {
     "vsmarty": {
@@ -11,13 +13,24 @@ host_config = {
     }
 }
 
+api_config = {
+    "Most_Portal":{
+        "cb_api":"http://localhost:5019/content-based/",
+        "ss_api":"http://localhost:5009/api/dter_inference"
+    },
+    "QN_Portal":{
+        "cb_api":"http://localhost:5013/content-based/",
+        "ss_api":"http://localhost:5009/api/dter_inference"
+    }
+}
+
 dataset_config = {
     "QN_DVC": {
         "dataset": "QN",
         "host": "vsmarty",
         "db_name": "countly",
         "collection_name": "did_url_r1_5d125bae529d875d43675518",
-        "folder": "D:\Working\PythonProjects\Recommendation\output\QN",
+        "folder": "/home/haind/Recommendation/output/QN",
         "transaction_ht_map": "transaction_QN_HT.csv",
         "transaction_mp_map": "transaction_QN_MP.csv",
         "url_ht_map": "url_QN_HT.csv",
@@ -38,6 +51,7 @@ dataset_config = {
         "transaction_all_map": "transaction_QNPortal_all.csv",
         "url_ht_map": "url_QNPortal_HT.csv",
         "url_mp_map": "url_QNPortal_MP.csv",
+        "url_all_map": "url_QNPortal_all.csv",
         "post_detail_db": "post_QNPortal_all.csv",
         "list_post_api": "http://quangnam.gov.vn/cms/webservices/Thongkebaiviet.asmx/ListBaiviet",
         "list_cat_api": "http://quangnam.gov.vn/cms/webservices/Thongkebaiviet.asmx/ListBaiviet",
@@ -48,11 +62,12 @@ dataset_config = {
         "host": "vsmarty",
         "db_name": "countly",
         "collection_name": "did_url_r1_5d49b61811dd440567e158c4",
-        "folder": "D:\Working\PythonProjects\Recommendation\output\MostDichvucong",
+        "folder": "/home/haind/Recommendation/output/MostDichvucong",
         "transaction_ht_map": "transaction_MostDichvucong_HT.csv",
         "transaction_mp_map": "transaction_MostDichvucong_MP.csv",
         "url_ht_map": "url_MostDichvucong_HT.csv",
         "url_mp_map": "url_MostDichvucong_MP.csv",
+        "url_all_map": "url_MostDichvucong_all.csv",
         "post_detail_db": "post_MostDichvucong_all.csv",
         "list_post_api": "https://www.most.gov.vn/_layouts/15/WebService/Getdataportal.asmx/GetListposts",
         "list_cat_api": "",
@@ -69,8 +84,9 @@ dataset_config = {
         "transaction_all_map": "transaction_MostPortal_MP.csv",
         "url_ht_map": "url_MostPortal_HT.csv",
         "url_mp_map": "url_MostPortal_MP.csv",
+        "url_all_map": "url_MostPortal_all.csv",
         "post_detail_db": "post_MostPortal_all.csv",
-        "list_post_api": "https://www.most.gov.vn/_layouts/15/WebService/Getdataportal.asmx/GetListposts",
+        "list_post_api": "https://www.most.gov.vn/_layouts/15/WebService/Getdataportal.asmx/GetListpostsByYears?year="+str(year),
         "list_cat_api": "https://www.most.gov.vn/_layouts/15/WebService/Getdataportal.asmx/GetCategorys",
         "corpus": "post_tf-idf_MostPortal.json.json",
         "lda_model": "MostPortal_gensim.model"
