@@ -14,6 +14,7 @@ import os
 import threading
 import pandas
 import pickle
+import shutil
 
 import tensorflow as tf
 import numpy as np
@@ -298,6 +299,20 @@ def train_dter(dataset_name, start_date, end_date, number_items):
     logd(settings.BASE_DIR + train_log_file, "a", 100, "Done saving model!")
     return True
     
+def filter_time(trans, start_date, end_date):
+    trans_id = []
+    trans_post_id = []
+    trans_emp = []
+    trans_ts = []
+    for row in trans.iterrows():
+        if int(row[1][3]) >= start_date and int(row[1][3]) >= end_date:
+            trans_id.append(row[1][0])
+            trans_post_id.append(row[1][1])
+            trans_emp.append(row[1][2])
+            trans_ts.append(row[1][3])
+
+    trans_new = pandas.DataFrame([*zip(trans_id, trans_post_id, trans_emp, trans_ts)])
+    return trans_new.assign(visited=False).sort_values(by=[3, 1], inplace=False)
 
 def preprocess(dataset_name, start_date, end_date):
     if dataset_name == "Most_Portal":
@@ -307,18 +322,22 @@ def preprocess(dataset_name, start_date, end_date):
 
     start_str = datetime.fromtimestamp(start_date).strftime("%m%d%Y_%H%M%S")
     end_str = datetime.fromtimestamp(end_date).strftime("%m%d%Y_%H%M%S")
-    ext_trans = "_from_" + str(start_date) + "_to_" + str(end_date) + ".csv"
+    # ext_trans = "_from_" + str(start_date) + "_to_" + str(end_date) + ".csv"
+
     cat_file = settings.BASE_DIR + "/api/databases/" + dataset_config[dataset_name]["dataset"] + "/cat_" + dataset_config[dataset_name]["dataset"] +  "_all.csv"
     post_file = settings.BASE_DIR + "/api/databases/" + dataset_config[dataset_name]["dataset"] + "/post_" + dataset_config[dataset_name]["dataset"] + "_all.csv"
-    tran_file = settings.BASE_DIR + "/api/databases/" + dataset_config[dataset_name]["dataset"] + "/transaction_" + dataset_config[dataset_name]["dataset"]  + ext_trans
-    url_file = settings.BASE_DIR + "/api/databases/" + dataset_config[dataset_name]["dataset"] + "/url_" + dataset_config[dataset_name]["dataset"] + ext_trans
+    tran_file = settings.BASE_DIR + "/api/databases/" + dataset_config[dataset_name]["dataset"] + "/transaction_" + dataset_config[dataset_name]["dataset"]  + "_all.csv"
+    url_file = settings.BASE_DIR + "/api/databases/" + dataset_config[dataset_name]["dataset"] + "/url_" + dataset_config[dataset_name]["dataset"] + "_all.csv"
     all_sess = []
 
     url = pandas.read_csv(url_file, header=None)
-    trans = pandas.read_csv(tran_file, header=None).assign(visited=False).sort_values(by=[3, 1], inplace=False)
+    trans = pandas.read_csv(tran_file, header=None)
     posts = pandas.read_csv(post_file, header=None)
 
+    print("Starting filter data..")
+    trans = filter_time(trans, start_date, end_date)
     logd(settings.BASE_DIR + train_log_file, "a", 20, "Done Read CSV")
+    print("Completed filter data..")
 
     map_id_title = {}
     for row in posts.iterrows():
@@ -446,18 +465,34 @@ def crawl(dataset_name, start_date=None, end_date=None):
         train_log_file = MOST_TRAIN_LOG
     elif dataset_name == "QN_Portal":
         train_log_file = QN_TRAIN_LOG
-
+    CSV_PATH = "/home/haind/Recommendation/output/"
+    # CSV_PATH = "/Users/phamhoanganh/OneDrive - TAP DOAN VINGROUP/Personal/projects/recommend-system/sample_csv/output/"
     cfg = dataset_config[dataset_name]
     try:
-        message1 = cat_tbl.read_data_from_api(cfg["list_cat_api"], cfg["folder"], cfg["dataset"])
+        print("Starting copying data ..")
+        # message1 = cat_tbl.read_data_from_api(cfg["list_cat_api"], cfg["folder"], cfg["dataset"])
+        shutil.copy(CSV_PATH + cfg["dataset"] + '/cat_' + cfg["dataset"] + '_all.csv', 
+            settings.BASE_DIR + "/api/databases/" + cfg["dataset"])
+        message1 = 'Done copy cat'
         logd(settings.BASE_DIR + train_log_file, "a", 5, message1)
-        message2 = trans_tbl.read_data_from_api(cfg["db_name"], cfg["collection_name"], cfg["list_post_api"],
-                                                    start_date, end_date, cfg["folder"], cfg["dataset"], type='crawl')
+        # message2 = trans_tbl.read_data_from_api(cfg["db_name"], cfg["collection_name"], cfg["list_post_api"],
+        #                                             start_date, end_date, cfg["folder"], cfg["dataset"], type='crawl')
+        shutil.copy(CSV_PATH + cfg["dataset"] + '/transaction_' + cfg["dataset"] + '_all.csv', 
+            settings.BASE_DIR + "/api/databases/" + cfg["dataset"])
+        shutil.copy(CSV_PATH + cfg["dataset"] + '/url_' + cfg["dataset"] + '_all.csv', 
+            settings.BASE_DIR + "/api/databases/" + cfg["dataset"])
+        message2 = 'Done copy trans and url'
         logd(settings.BASE_DIR + train_log_file, "a", 10, message2)
-        message3 = post_tbl.read_data_from_api(cfg["list_post_api"], None, cfg["folder"], cfg["dataset"],
-                                                s_time=None, e_time=None, type='crawl')
+        # message3 = post_tbl.read_data_from_api(cfg["list_post_api"], None, cfg["folder"], cfg["dataset"],
+        #                                         s_time=None, e_time=None, type='crawl')
+        shutil.copy(CSV_PATH + cfg["dataset"] + '/post_' + cfg["dataset"] + '_all.csv', 
+            settings.BASE_DIR + "/api/databases/" + cfg["dataset"])
+        message3 = 'Done copy post'
         logd(settings.BASE_DIR + train_log_file, "a", 15, message3)
-    except:
+
+        print("Completed copying data!")
+    except Exception as err:
+        print(err)
         return False
     return True
 

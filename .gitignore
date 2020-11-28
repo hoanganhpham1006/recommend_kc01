@@ -3,3 +3,5 @@ data/*
 sbrd_demo_most/*
 *.zip
 kc01api/api/logs/*
+kc01api/api/databases/*
+kc01api/api/models/*

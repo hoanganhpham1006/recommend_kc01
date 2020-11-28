@@ -3,7 +3,6 @@ import sys
 from pathlib import Path
 from api.helpers.config import host_config
 from api.helpers.common import *
-import sys
 
 sys.path.append(str(Path(os.getcwd()).parent))
 
@@ -199,7 +198,7 @@ def get_post_dict_and_update_url(list_post_api, url_dict, url_path, transaction_
                 url_match = re.match(r'.*?/vn/tin-tuc/(\d+)', post['slug'])
                 if url_match:
                     post_id = int(url_match.group(1))
-                    url = post['slug'].replace('https://www.most.gov.vn', '')
+                    url = post['slug'].replace('https://www.most.gov.vn', '').replace('http://www.most.gov.vn', '')
                     if url in transaction_urls:
                         if url not in url_dict:
                             new_url_dict[post_id] = url
