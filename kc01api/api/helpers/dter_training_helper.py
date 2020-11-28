@@ -305,7 +305,7 @@ def filter_time(trans, start_date, end_date):
     trans_emp = []
     trans_ts = []
     for row in trans.iterrows():
-        if int(row[1][3]) >= start_date and int(row[1][3]) >= end_date:
+        if int(row[1][3]) >= start_date and int(row[1][3]) <= end_date:
             trans_id.append(row[1][0])
             trans_post_id.append(row[1][1])
             trans_emp.append(row[1][2])
