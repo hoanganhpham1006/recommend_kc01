@@ -499,6 +499,7 @@ def crawl(dataset_name, start_date=None, end_date=None):
 def processing(dataset_name, start_date, end_date, force_train):
     if not os.path.isdir(settings.BASE_DIR + "/api/databases/" + dataset_name):
         os.mkdir(settings.BASE_DIR + "/api/databases/" + dataset_name) 
+    origin_datasetname = dataset_name
     if dataset_name == "MostPortal":
         dataset_name = "Most_Portal"
         train_log_file = MOST_TRAIN_LOG
@@ -518,10 +519,10 @@ def processing(dataset_name, start_date, end_date, force_train):
 
     start_str = datetime.fromtimestamp(start_date).strftime("%m%d%Y_%H%M%S")
     end_str = datetime.fromtimestamp(end_date).strftime("%m%d%Y_%H%M%S")
-    if os.path.isdir(settings.BASE_DIR + "/api/models/" + dataset_name +"/model_" + str(start_date) + "_to_" + str(end_date)):
+    if os.path.isdir(settings.BASE_DIR + "/api/models/" + origin_datasetname +"/model_" + str(start_date) + "_to_" + str(end_date)):
         model_existed = True
 
-    if not model_existed or (model_existed and force_train):
+    if not model_existed or force_train:
         log_file = settings.BASE_DIR + train_log_file
         if os.path.isfile(log_file):
             status, progress = status_from_logd(log_file)
