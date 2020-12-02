@@ -519,7 +519,6 @@ def processing(dataset_name, start_date, end_date, force_train):
 
     start_str = datetime.fromtimestamp(start_date).strftime("%m%d%Y_%H%M%S")
     end_str = datetime.fromtimestamp(end_date).strftime("%m%d%Y_%H%M%S")
-    import pdb;pdb.set_trace()
     if os.path.isdir(settings.BASE_DIR + "/api/models/" + origin_datasetname +"/model_" + start_str + "_to_" + end_str):
         model_existed = True
 
