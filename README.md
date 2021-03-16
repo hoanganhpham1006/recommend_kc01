@@ -26,6 +26,11 @@ CUDA_VISIBLE_DEVICES=1 gunicorn django_api_base.wsgi -b 0.0.0.0:5009 -w 1
 ## Client API
 Please refer to [this POSTMAN generated document](https://www.getpostman.com/collections/57b47df7ee39c6fa6895)
 
+## Eval model
+```
+python eval.py --model_dir model_02102021_000000_to_03102021_000000 --portal_name MostPortal
+```
+
 ## Contributing
 Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
 
